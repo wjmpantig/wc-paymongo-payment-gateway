@@ -49,13 +49,14 @@ function cynder_paymongo_create_intent($orderId) {
         (!in_array($paymentMethod, PAYMONGO_PAYMENT_METHODS))
     ) return;
 
-    $amount = floatval($order->get_total());
+    $amount = intval(round($order->get_total(), 2));
+    wc_get_logger()->log('info', '[Create Payment Intent] ' . $amount);
 
-    if (!is_float($amount)) {
-        $errorMessage = 'Invalid amount';
-        wc_get_logger()->log('error', '[Create Payment Intent] ' . $errorMessage);
-        throw new Exception(__($errorMessage, 'woocommerce'));
-    }
+    // if (is_float($amount)) {
+    //     $errorMessage = 'Invalid amount';
+    //     wc_get_logger()->log('error', '[Create Payment Intent] ' . $errorMessage);
+    //     throw new Exception(__($errorMessage, 'woocommerce'));
+    // }
 
     $pkKey = $testMode ? 'woocommerce_cynder_paymongo_test_public_key' : 'woocommerce_cynder_paymongo_public_key';
     $skKey = $testMode ? 'woocommerce_cynder_paymongo_test_secret_key' : 'woocommerce_cynder_paymongo_secret_key';
