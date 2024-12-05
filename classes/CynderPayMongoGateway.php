@@ -254,4 +254,8 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
     {
         return true;
     }
+
+    public function add_payment_method():array{
+
+    }
 }
