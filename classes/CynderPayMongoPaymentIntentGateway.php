@@ -29,7 +29,7 @@ if (!defined('ABSPATH')) {
  * @license  n/a (http://127.0.0.0)
  * @link     n/a
  */
-class CynderPayMongoPaymentIntentGateway extends WC_Payment_Gateway
+class CynderPayMongoPaymentIntentGateway extends WC_Payment_Gateway_CC
 {
     /**
      * Singleton instance
@@ -72,7 +72,17 @@ class CynderPayMongoPaymentIntentGateway extends WC_Payment_Gateway
     public function __construct()
     {
         $this->supports = array(
-            'products'
+            'products', 
+            'subscriptions',
+            'subscription_cancellation'
+            // 'subscription_suspension', 
+            // 'subscription_reactivation',
+            // 'subscription_amount_changes',
+            // 'subscription_date_changes',
+            // 'subscription_payment_method_change'
+            // 'subscription_payment_method_change_customer',
+            // 'subscription_payment_method_change_admin',
+            // 'multiple_subscriptions',
         );
 
         $this->initFormFields();
