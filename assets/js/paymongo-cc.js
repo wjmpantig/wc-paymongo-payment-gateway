@@ -4,6 +4,7 @@ jQuery(document).ready(function ($) {
         this.method_field_name = 'cynder_paymongo_method_id';
         this.method_field_selector = 'input#' + this.method_field_name;
         this.init();
+        this.card_type = null;
     }
 
     CCForm.prototype.set = function(key, value) {
@@ -17,7 +18,7 @@ jQuery(document).ready(function ($) {
     CCForm.prototype.init = function () {
         $(document.body).on('payment_method_selected', this.initializeCcFields.bind(this));
         $(document.body).on('updated_checkout', this.initializeCcFields.bind(this));
-
+        
         let form;
         
         if(cynder_paymongo_cc_params.isCheckout) {
@@ -33,6 +34,12 @@ jQuery(document).ready(function ($) {
             form.on('submit', this.onSubmit.bind(this));
             this.form = form;
             $(document.body).trigger('cynder_paymongo_init_checkout_form', [form]);
+        } else if (cynder_paymongo_cc_params.isAddPaymentMethodPage) {
+            form = $('#add_payment_method');
+            form.on('submit', this.onSubmit.bind(this));
+            $(document.body).trigger('payment_method_selected');
+
+            this.form = form;
         } else {
             alert('Paymongo cannot find the checkout form. Initialization failed. Try to refresh the page.');
         }
@@ -40,10 +47,9 @@ jQuery(document).ready(function ($) {
 
     CCForm.prototype.initializeCcFields = function () {
         var paymentMethod = $('input[name=payment_method]:checked').val();
-
+        
         /** If payment method is not CC, don't initialize form */
         if (paymentMethod !== 'paymongo') return;
-
         this.addLoader();
         
         setTimeout(function () {
@@ -76,6 +82,7 @@ jQuery(document).ready(function ($) {
 
     CCForm.prototype.onSubmit = function (e) {
         const form = this.form;
+        this.card_type = null;
 
         var paymentMethod = $('input[name=payment_method]:checked').val();
 
@@ -90,7 +97,7 @@ jQuery(document).ready(function ($) {
             return true;
         }
 
-        if (cynder_paymongo_cc_params.isOrderPay) {
+        if (cynder_paymongo_cc_params.isOrderPay || cynder_paymongo_cc_params.isAddPaymentMethodPage) {
             e.preventDefault();
         }
 
@@ -145,7 +152,7 @@ jQuery(document).ready(function ($) {
                 phone: phone,
             },
         };
-
+        this.card_type = this.detectCardType(ccNo)
         var args = [
             payload,
             this.onPaymentMethodCreationResponse.bind(this),
@@ -181,6 +188,7 @@ jQuery(document).ready(function ($) {
         this.removeLoader();
 
         if (err) {
+            // TODO errors not loading on add payment method page
             return this.showClientErrors(err.errors);
         }
 
@@ -194,7 +202,17 @@ jQuery(document).ready(function ($) {
             methodField = form.find(this.method_field_selector);
         }
 
-        methodField.val(data.id);
+        const payment_method_id = data.id;
+        const details = data.attributes.details;
+        Object.entries(details).forEach(([k,v]) => {
+            const field = $('<input type="hidden" id="' + k + '" name="' + k+ '"/>');
+            form.append(field)
+            field.val(v)
+        })
+        const field = $('<input type="hidden" id="card_type" name="card_type"/>');
+        field.val(this.card_type)
+        form.append(field)
+        methodField.val(payment_method_id);
 
         form.submit();
     }
@@ -230,6 +248,30 @@ jQuery(document).ready(function ($) {
 
     CCForm.prototype.removeLoader = function () {
         $(".paymongo-loading").remove();
+    }
+
+    CCForm.prototype.detectCardType = function (cardNumber) {
+        // Remove spaces or dashes from the card number
+        cardNumber = cardNumber.replace(/\D/g, '');
+    
+        // Define card type patterns
+        const cardPatterns = {
+            visa: /^4[0-9]{12}(?:[0-9]{3})?(?:[0-9]{3})?$/, // Starts with 4
+            mastercard: /^(?:5[1-5][0-9]{14}|2(?:2[2-9][0-9]{12}|[3-7][0-9]{13}))$/, // 51-55 or 2221-2720
+            amex: /^3[47][0-9]{13}$/, // Starts with 34 or 37
+            discover: /^(?:6011|65|64[4-9]|622(?:12[6-9]|1[3-9][0-9]|[2-8][0-9]{2}|9[01][0-9]|92[0-5]))[0-9]{12}$/, // Discover
+            jcb: /^(?:2131|1800|35\d{3})\d{11}$/, // Starts with 2131, 1800, or 35
+            diners: /^3(?:0[0-5]|[68][0-9])[0-9]{11}$/ // Diners Club: 300-305, 36, or 38
+        };
+    
+        // Check the card number against each pattern
+        for (const [cardType, pattern] of Object.entries(cardPatterns)) {
+            if (pattern.test(cardNumber)) {
+                return cardType; // Return the detected card type (e.g., "visa", "mastercard")
+            }
+        }
+    
+        return 'unknown'; // Return 'unknown' if no match
     }
 
     new CCForm();

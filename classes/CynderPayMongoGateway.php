@@ -13,6 +13,8 @@
 
 namespace Cynder\PayMongo;
 
+use Exception;
+
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
@@ -119,9 +121,9 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
     {
         $isCheckout = is_checkout() && !is_checkout_pay_page();
         $isOrderPay = is_checkout_pay_page();
-
+        $isAddPaymentMethodPage = is_add_payment_method_page();
         // we need JavaScript to process a token only on cart/checkout pages, right?
-        if (!$isCheckout && !$isOrderPay) {
+        if (!$isCheckout && !$isOrderPay && !$isAddPaymentMethodPage) {
             return;
         }
 
@@ -155,10 +157,12 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
         $paymongoCc = array();
         $paymongoCc['isCheckout'] = $isCheckout;
         $paymongoCc['isOrderPay'] = $isOrderPay;
+        $paymongoCc['isAddPaymentMethodPage'] = $isAddPaymentMethodPage;
         $paymongoCc['total_amount'] = WC()->cart->get_totals()['total'];
 
         // Order Pay Page
-        if (isset($_GET['pay_for_order']) && 'true' === $_GET['pay_for_order']) {
+        $orderPayPage = (isset($_GET['pay_for_order']) && 'true' === $_GET['pay_for_order']);
+        if ($orderPayPage) {
             $orderId = wc_get_order_id_by_order_key(urldecode($_GET['key']));
             $order = wc_get_order($orderId);
             $paymongoCc['order_pay_url'] = $order->get_checkout_payment_url();
@@ -175,6 +179,20 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
             $paymongoCc['billing_phone'] = $order->get_billing_phone();
         }
 
+        if ($isAddPaymentMethodPage) {
+            $customer = new \WC_Customer(get_current_user_id(), true);
+            $paymongoCc['billing_first_name'] = $customer->get_billing_first_name();
+            $paymongoCc['billing_last_name'] = $customer->get_billing_last_name();
+            $paymongoCc['billing_address_1'] = $customer->get_billing_address_1();
+            $paymongoCc['billing_address_2'] = $customer->get_billing_address_2();
+            $paymongoCc['billing_state'] = $customer->get_billing_state();
+            $paymongoCc['billing_city'] = $customer->get_billing_city();
+            $paymongoCc['billing_postcode'] = $customer->get_billing_postcode();
+            $paymongoCc['billing_country'] = $customer->get_billing_country();
+            $paymongoCc['billing_email'] = $customer->get_billing_email();
+            $paymongoCc['billing_phone'] = $customer->get_billing_phone();
+        }
+
         wp_register_style(
             'paymongo',
             plugins_url('assets/css/paymongo-styles.css', CYNDER_PAYMONGO_MAIN_FILE),
@@ -185,12 +203,13 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
             'cleave',
             plugins_url('assets/js/cleave.min.js', CYNDER_PAYMONGO_MAIN_FILE)
         );
-
-        wp_register_script(
-            'woocommerce_paymongo_checkout',
-            plugins_url('assets/js/paymongo-checkout.js', CYNDER_PAYMONGO_MAIN_FILE),
-            array('jquery')
-        );
+        if ($isCheckout && $isOrderPay) {
+            wp_register_script(
+                'woocommerce_paymongo_checkout',
+                plugins_url('assets/js/paymongo-checkout.js', CYNDER_PAYMONGO_MAIN_FILE),
+                array('jquery')
+            );
+        }
 
         wp_register_script(
             'woocommerce_paymongo_cc',
@@ -256,6 +275,32 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
     }
 
     public function add_payment_method():array{
+        $payment_method_id = $_POST['cynder_paymongo_method_id'];
+        $token = new \WC_Payment_Token_CC(0);
+        $token->set_object_read(false);
+        $token->set_token($payment_method_id);
+        $token->set_gateway_id($this->id);
+        $token->set_user_id(get_current_user_id());
+        $token->set_last4($_POST['last4']);
+        $token->set_expiry_month($_POST['exp_month']);
+        $year = $_POST['exp_year'];
+        $date = getdate();
+        $currentYear = strval($date['year']);
+        $prefix = substr($currentYear, 0, 2);
+        $year = $prefix . $year;
+        $this->utils->log('debug', $year);
 
+        $token->set_expiry_year($year);
+        $token->set_card_type($_POST['card_type']);
+        if ($token->save()) {
+            return [
+                'result'   => 'success',
+                'redirect' => wc_get_account_endpoint_url('payment-methods'), // Redirect to the payment methods page
+            ];
+        } else {
+            return [
+                'result'   => 'failure',
+            ];
+        }
     }
 }
