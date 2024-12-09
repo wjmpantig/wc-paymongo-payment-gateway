@@ -51,10 +51,21 @@ jQuery(document).ready(function ($) {
         /** If payment method is not CC, don't initialize form */
         if (paymentMethod !== 'paymongo') return;
         this.addLoader();
-        
         setTimeout(function () {
             this.initCleave();
         }.bind(this), 500);
+        if (cynder_paymongo_cc_params.isCheckout) {
+            $('input[name="wc_saved_payment_method"]').on('change', (e) => {
+                const { value } = e.target
+                if (value === 'new') {
+                    $('.new-card-fields').slideDown();
+                    return
+                }
+                $('.new-card-fields').slideUp();
+
+            })
+            $('input[name="wc_saved_payment_method"]:checked').trigger('change')
+        }
     }
 
     CCForm.prototype.initCleave = function () {
@@ -100,8 +111,15 @@ jQuery(document).ready(function ($) {
         if (cynder_paymongo_cc_params.isOrderPay || cynder_paymongo_cc_params.isAddPaymentMethodPage) {
             e.preventDefault();
         }
+        const paymentMethodId = $('input[name="wc_saved_payment_method"]:checked').val()
+        
+        if (paymentMethod === 'new') {
+            return this.createPaymentMethod();
+        }
+        this.onPaymentMethodCreationResponse(null, {
+            id: paymentMethodId
+        })
 
-        return this.createPaymentMethod();
     }
 
     CCForm.prototype.createPaymentMethod = function () {
@@ -203,15 +221,17 @@ jQuery(document).ready(function ($) {
         }
 
         const payment_method_id = data.id;
-        const details = data.attributes.details;
-        Object.entries(details).forEach(([k,v]) => {
-            const field = $('<input type="hidden" id="' + k + '" name="' + k+ '"/>');
+        if (cynder_paymongo_cc_params.isAddPaymentMethodPage) {
+            const details = data.attributes.details;
+            Object.entries(details).forEach(([k,v]) => {
+                const field = $('<input type="hidden" id="' + k + '" name="' + k+ '"/>');
+                form.append(field)
+                field.val(v)
+            })
+            const field = $('<input type="hidden" id="card_type" name="card_type"/>');
+            field.val(this.card_type)
             form.append(field)
-            field.val(v)
-        })
-        const field = $('<input type="hidden" id="card_type" name="card_type"/>');
-        field.val(this.card_type)
-        form.append(field)
+        }
         methodField.val(payment_method_id);
 
         form.submit();

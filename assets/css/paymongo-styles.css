@@ -6,7 +6,8 @@
     position: relative;
 }
 
-.wc_payment_method > label:first-of-type img.paymongo-method-logo {
+.wc_payment_method > label:first-of-type img.paymongo-method-logo,
+#add_payment_method img.paymongo-method-logo {
     max-width: 100px;
 }
 
@@ -209,4 +210,33 @@
 .disabled {
     opacity: 0.5 !important;
     cursor: not-allowed !important;
+}
+
+.paymongo-saved-payment-method label {
+    display: block;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    width: 100%;
+    order: -1;
+}
+.paymongo-saved-payment-method input[type=radio]:checked + label {
+    font-weight: bold !important;
+}
+
+
+.paymongo-saved-payment-method {
+    margin-bottom: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+}
+.woocommerce-checkout #payment .paymongo-saved-payment-method .card-type {
+    width: 2rem;
+    height: auto;
+    vertical-align: middle;
+    border: 1px solid grey;
+    padding: 0.2rem 0.1rem;
+    margin-right: 0.5rem;
+}
+.paymongo-saved-payment-method:not(:last-child) {
+    border-bottom: 1px solid grey;
 }

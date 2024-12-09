@@ -261,6 +261,10 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
         do_action('woocommerce_credit_card_form_start', $this->id);
 
         $pluginDir = plugin_dir_path(CYNDER_PAYMONGO_MAIN_FILE);
+        $isAddPaymentMethodPage = is_add_payment_method_page();
+        if (!$isAddPaymentMethodPage) {
+            include $pluginDir . '/classes/payment-methods.php';
+        }
 
         include $pluginDir . '/classes/cc-fields.php';
 
