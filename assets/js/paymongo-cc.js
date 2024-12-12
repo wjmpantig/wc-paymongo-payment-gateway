@@ -112,8 +112,6 @@ jQuery(document).ready(function ($) {
             e.preventDefault();
         }
         const paymentMethodId = $('input[name="wc_saved_payment_method"]:checked').val()
-        
-        if (paymentMethod === 'new') {
             return this.createPaymentMethod();
         }
         this.onPaymentMethodCreationResponse(null, {

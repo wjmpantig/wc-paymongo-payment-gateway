@@ -292,7 +292,6 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
         $currentYear = strval($date['year']);
         $prefix = substr($currentYear, 0, 2);
         $year = $prefix . $year;
-        $this->utils->log('debug', $year);
 
         $token->set_expiry_year($year);
         $token->set_card_type($_POST['card_type']);
