@@ -2,7 +2,7 @@
 /**
  * PHP version 7
  * Plugin Name: Payments via PayMongo for WooCommerce
- * Github URI: https://github.com/wjmpantig/wc-paymongo-payment-gateway.git
+ * Github Plugin URI: https://github.com/wjmpantig/wc-paymongo-payment-gateway.git
  * Description: Take credit card, GCash, GrabPay and PayMaya payments via PayMongo.
  * Author: Winfred Pantig
  * Author URI: https://winfred.me
