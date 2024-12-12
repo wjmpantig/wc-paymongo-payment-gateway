@@ -306,4 +306,15 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
             ];
         }
     }
+
+    public function process_payment($orderId):array {
+        $result = parent::process_payment($orderId);
+        try {
+            $this->add_payment_method();
+        }catch(Exception $e) {
+            $this->utils->log('warning', $e->getMessage());
+            
+        }
+        return $result;
+    }
 }

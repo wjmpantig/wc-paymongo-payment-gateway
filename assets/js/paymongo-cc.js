@@ -3,6 +3,7 @@ jQuery(document).ready(function ($) {
         this.form = null;
         this.method_field_name = 'cynder_paymongo_method_id';
         this.method_field_selector = 'input#' + this.method_field_name;
+        this.is_new_card = false
         this.init();
         this.card_type = null;
     }
@@ -112,6 +113,8 @@ jQuery(document).ready(function ($) {
             e.preventDefault();
         }
         const paymentMethodId = $('input[name="wc_saved_payment_method"]:checked').val()
+        if (paymentMethodId === 'new' || typeof paymentMethodId === 'undefined' ) {
+            this.is_new_card = true
             return this.createPaymentMethod();
         }
         this.onPaymentMethodCreationResponse(null, {
@@ -219,7 +222,9 @@ jQuery(document).ready(function ($) {
         }
 
         const payment_method_id = data.id;
-        if (cynder_paymongo_cc_params.isAddPaymentMethodPage) {
+        const is_new_card = this.is_new_card;
+        
+        if (cynder_paymongo_cc_params.isAddPaymentMethodPage || is_new_card) {
             const details = data.attributes.details;
             Object.entries(details).forEach(([k,v]) => {
                 const field = $('<input type="hidden" id="' + k + '" name="' + k+ '"/>');
@@ -229,6 +234,10 @@ jQuery(document).ready(function ($) {
             const field = $('<input type="hidden" id="card_type" name="card_type"/>');
             field.val(this.card_type)
             form.append(field)
+            if (is_new_card) {
+                const field = $('<input type="hidden" id="is_new_card" name="is_new_card" value="true" />');
+                form.append(field)
+            }
         }
         methodField.val(payment_method_id);
 
