@@ -48,27 +48,27 @@ class Utils {
     }
 
     public function trackProcessPayment($amount, $payment_method, $test_mode) {
-        PostHog::capture(array(
-            'distinctId' => base64_encode(get_bloginfo('wpurl')),
-            'event' => 'process payment',
-            'properties' => array(
-                'amount' => $amount,
-                'payment_method' => $payment_method,
-                'sandbox' => $test_mode ? 'true' : 'false',
-            ),
-        ));
+        // PostHog::capture(array(
+        //     'distinctId' => base64_encode(get_bloginfo('wpurl')),
+        //     'event' => 'process payment',
+        //     'properties' => array(
+        //         'amount' => $amount,
+        //         'payment_method' => $payment_method,
+        //         'sandbox' => $test_mode ? 'true' : 'false',
+        //     ),
+        // ));
     }
 
     public function trackPaymentResolution($status, $payment_id, $amount, $payment_method, $test_mode) {
-        PostHog::capture(array(
-            'distinctId' => base64_encode(get_bloginfo('wpurl')),
-            'event' => $status . ' payment',
-            'properties' => array(
-                'payment_id' => $payment_id,
-                'amount' => $amount,
-                'payment_method' => $payment_method,
-                'sandbox' => $test_mode ? 'true' : 'false',
-            ),
-        ));
+        // PostHog::capture(array(
+        //     'distinctId' => base64_encode(get_bloginfo('wpurl')),
+        //     'event' => $status . ' payment',
+        //     'properties' => array(
+        //         'payment_id' => $payment_id,
+        //         'amount' => $amount,
+        //         'payment_method' => $payment_method,
+        //         'sandbox' => $test_mode ? 'true' : 'false',
+        //     ),
+        // ));
     }
 }

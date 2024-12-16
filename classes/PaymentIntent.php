@@ -4,16 +4,17 @@ namespace Cynder\PayMongo;
 
 use Paymongo\Phaymongo\PaymongoException;
 use Paymongo\Phaymongo\PaymongoUtils;
+use Paymongo\Phaymongo\Phaymongo;
 
 class PaymentIntent {
     use ErrorsTrait;
 
     protected $type;
     protected $order;
-    protected $utils;
+    protected Utils $utils;
     protected $debug_mode;
     protected $test_mode;
-    protected $client;
+    protected Phaymongo $client;
 
     private $payment_methods = [
         'paymongo_paymaya' => 'paymaya',
@@ -70,6 +71,7 @@ class PaymentIntent {
         $order_id = $order->get_id();
 
         if (!isset($payment_method_id)) {
+            $this->utils->log('debug', 'NO PAYMENT METHOD ID?');
             $error_code = 'PI001';
             $this->utils->log('error', $this->getLogError($error_code, [$order_id]));
             $this->utils->addNotice('error', $this->getUserError($error_code));
@@ -111,7 +113,8 @@ class PaymentIntent {
                         );
                 }
             }
-
+            $existing = $this->client->paymentIntent()->retrieveResourceById($payment_intent_id);
+            $this->utils->log('debug', 'EXISTING: ' . print_r($existing, true));
             $payment_intent = $this->client->paymentIntent()->attachPaymentMethod($payment_intent_id, $payment_method_id, $payment_method_options, $return_url_for_gateway);
 
             if ($this->debug_mode) {

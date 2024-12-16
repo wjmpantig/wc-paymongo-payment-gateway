@@ -8,6 +8,7 @@ jQuery(document).ready(function ($) {
     PaymongoClient.prototype.init = function () {
         $(document.body).on('cynder_paymongo_create_payment_intent', this.createPaymentIntent.bind(this));
         $(document.body).on('cynder_paymongo_create_payment_method', this.createPaymentMethod.bind(this));
+        $(document.body).on('cynder_paymongo_get_payment_method', this.getPaymentMethod.bind(this));
         $(document.body).on('cynder_paymongo_parse_client_errors', this.parseErrors.bind(this));
     }
 
@@ -34,6 +35,17 @@ jQuery(document).ready(function ($) {
             method: 'POST',
             headers: this.getHeaders(true),
             data: this.buildPayload(payload),
+            success: this.parseResponse.bind(this, callback),
+            error: this.parseError.bind(this, callback),
+        });
+    }
+
+    PaymongoClient.prototype.getPaymentMethod = function (e, id, callback) {
+        $.ajax({
+            url: BASE_API_URL + '/payment_methods/' + id,
+            method: 'GET',
+            headers: this.getHeaders(true),
+            // data: this.buildPayload(payload),
             success: this.parseResponse.bind(this, callback),
             error: this.parseError.bind(this, callback),
         });

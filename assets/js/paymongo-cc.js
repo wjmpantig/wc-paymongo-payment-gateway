@@ -55,7 +55,8 @@ jQuery(document).ready(function ($) {
         setTimeout(function () {
             this.initCleave();
         }.bind(this), 500);
-        if (cynder_paymongo_cc_params.isCheckout) {
+        const { isCheckout, isOrderPay } = cynder_paymongo_cc_params
+        if (isCheckout || isOrderPay) {
             $('input[name="wc_saved_payment_method"]').on('change', (e) => {
                 const { value } = e.target
                 if (value === 'new') {
@@ -103,23 +104,30 @@ jQuery(document).ready(function ($) {
         }
 
         const hasMethod = form.find(this.method_field_selector).length;
-
         if (hasMethod) {
             this.removeLoader();
             return true;
         }
 
-        if (cynder_paymongo_cc_params.isOrderPay || cynder_paymongo_cc_params.isAddPaymentMethodPage) {
-            e.preventDefault();
-        }
+        e.preventDefault();
+        // if (cynder_paymongo_cc_params.isOrderPay || cynder_paymongo_cc_params.isAddPaymentMethodPage) {
+        // }
         const paymentMethodId = $('input[name="wc_saved_payment_method"]:checked').val()
         if (paymentMethodId === 'new' || typeof paymentMethodId === 'undefined' ) {
             this.is_new_card = true
             return this.createPaymentMethod();
         }
-        this.onPaymentMethodCreationResponse(null, {
-            id: paymentMethodId
-        })
+
+        // payment method selected
+        // this.onPaymentMethodCreationResponse(null, {
+        //     id: paymentMethodId
+        // })
+        const args = [
+            paymentMethodId,
+            this.onPaymentMethodCreationResponse.bind(this),
+        ];
+        $(document.body).trigger('cynder_paymongo_get_payment_method', args);
+
 
     }
 
@@ -205,7 +213,7 @@ jQuery(document).ready(function ($) {
 
     CCForm.prototype.onPaymentMethodCreationResponse = function (err, data) {
         this.removeLoader();
-
+        // debugger
         if (err) {
             // TODO errors not loading on add payment method page
             return this.showClientErrors(err.errors);
@@ -220,8 +228,10 @@ jQuery(document).ready(function ($) {
             form.append('<input type="hidden" id="' + this.method_field_name + '" name="' + this.method_field_name + '"/>');
             methodField = form.find(this.method_field_selector);
         }
-
+        
         const payment_method_id = data.id;
+        methodField.val(payment_method_id);
+        
         const is_new_card = this.is_new_card;
         
         if (cynder_paymongo_cc_params.isAddPaymentMethodPage || is_new_card) {
@@ -239,8 +249,6 @@ jQuery(document).ready(function ($) {
                 form.append(field)
             }
         }
-        methodField.val(payment_method_id);
-
         form.submit();
     }
 

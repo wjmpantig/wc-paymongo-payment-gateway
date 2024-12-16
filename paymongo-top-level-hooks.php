@@ -50,7 +50,6 @@ function cynder_paymongo_create_intent($orderId) {
     ) return;
 
     $amount = intval(round($order->get_total(), 2));
-    wc_get_logger()->log('info', '[Create Payment Intent] ' . $amount);
 
     // if (is_float($amount)) {
     //     $errorMessage = 'Invalid amount';
@@ -65,7 +64,7 @@ function cynder_paymongo_create_intent($orderId) {
     $client = new Phaymongo($publicKey, $secretKey);
 
     $genericErrorMessage = 'Something went wrong with the payment. Please try another payment method. If issue persist, contact support.';
-
+    $logger = wc_get_logger();
     try {
         /**
          * Used by Card Installments. Configure
@@ -91,6 +90,7 @@ function cynder_paymongo_create_intent($orderId) {
         }
 
         $shopName = get_bloginfo('name');
+        $logger->debug('hook.create_intent');
         $paymentIntent = $client->paymentIntent()->create(
             floatval($amount),
             ['card', 'paymaya', 'atome', 'dob', 'billease', 'gcash', 'grab_pay'],

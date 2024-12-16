@@ -137,7 +137,7 @@ class CynderPayMongoPaymentIntentGateway extends \WC_Payment_Gateway_CC
     /**
      * Override for certain payment methods
      */
-    public function getPaymentMethodId($orderId) {
+    public function getPaymentMethodId($orderId):null|string {
         $order = wc_get_order($orderId);
         $paymentMethod = $this->paymentIntent->getPaymentMethod($order, $this->hasDetailsPayload ? array($this, 'generatePaymentMethodDetailsPayload') : null);
 
@@ -165,7 +165,7 @@ class CynderPayMongoPaymentIntentGateway extends \WC_Payment_Gateway_CC
      * @link  https://developers.paymongo.com/reference#the-payment-intent-object
      * @since 1.0.0
      */
-    public function process_payment($orderId) // phpcs:ignore
+    public function process_payment($orderId): array|null // phpcs:ignore
     {
         if ($this->debugMode) {
             $this->utils->log('info', '[Processing Payment] Processing payment for order ID ' . $orderId);
@@ -181,9 +181,27 @@ class CynderPayMongoPaymentIntentGateway extends \WC_Payment_Gateway_CC
         $paymentIntentId = $order->get_meta('paymongo_payment_intent_id');
         $returnUrl = get_home_url() . '/?wc-api=cynder_paymongo_catch_redirect&order=' . $orderId . '&intent=' . $paymentIntentId . '&agent=cynder_woocommerce&version=' . CYNDER_PAYMONGO_VERSION;
 
-        $returnObj = $this->paymentIntent->processPayment($order, $paymentMethodId, $returnUrl, $this->get_return_url($order), $this->sendInvoice);
+        $returnObj = $this->paymentIntent->processPayment($order, 
+            $paymentMethodId, 
+            $returnUrl, 
+            $this->get_return_url($order), 
+            $this->sendInvoice);
 
         return $returnObj;
+    }
+
+    public function process_subscription_payment($amount, \WC_Order $order) {
+        $this->utils->log('debug', "[process_subscription_payment] amount: P$amount, order id: $order->id");
+        $payment_method = $order->get_payment_method();
+        if ($payment_method != PAYMONGO_CARD) {
+            $this->utils->log('warn', "[process_subscription_payment] payment_method invalid: $payment_method");
+            return false;
+        }
+        $tokens = $order->get_payment_tokens();
+        $this->utils->log('debug', "[process_subscription_payment] tokens: " . print_r($tokens, true));
+
+
+        return true;
     }
 
     /**
@@ -221,4 +239,6 @@ class CynderPayMongoPaymentIntentGateway extends \WC_Payment_Gateway_CC
 
         return $text;
     }
+
+    
 }

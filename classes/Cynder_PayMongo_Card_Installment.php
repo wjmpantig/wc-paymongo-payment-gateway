@@ -103,9 +103,10 @@ class Cynder_PayMongo_Card_Installment extends CynderPayMongoPaymentIntentGatewa
         );
     }
 
-    public function getPaymentMethodId($orderId)
+    public function getPaymentMethodId($orderId):null|string
     {
-        $paymentMethodId = $_POST['cynder_paymongo_method_id'];
+        $key = 'cynder_paymongo_method_id';
+        $paymentMethodId = isset($_POST[$key]) ? $_POST[$key] : null;
         return $paymentMethodId;
     }
 

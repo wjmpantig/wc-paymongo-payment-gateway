@@ -104,9 +104,16 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
         );
     }
     
-    public function getPaymentMethodId($orderId)
+    public function getPaymentMethodId($orderId): string|null
     {
-        $paymentMethodId = $_POST['cynder_paymongo_method_id'];
+        $key = 'cynder_paymongo_method_id';
+        $paymentMethodId = isset($_POST[$key]) ? $_POST[$key] : null;
+        $key2 = 'wc_saved_payment_method';
+        $paymentMethodId2 = isset($_POST[$key2]) ? $_POST[$key2] : null;
+        if ($paymentMethodId2 !== 'new' && !is_null($paymentMethodId2)) {
+            $this->utils->log('debug', "USED $key2");
+            return $paymentMethodId2;
+        }
         return $paymentMethodId;
     }
 
@@ -307,13 +314,16 @@ class CynderPayMongoGateway extends CynderPayMongoPaymentIntentGateway
         }
     }
 
-    public function process_payment($orderId):array {
+    public function process_payment($orderId):array|null {
         $result = parent::process_payment($orderId);
-        try {
-            $this->add_payment_method();
-        }catch(Exception $e) {
-            $this->utils->log('warning', $e->getMessage());
-            
+        $this->utils->log('debug', "gateway.process_payment: " .print_r($result,true));
+        if ($result !== null && isset($_POST['is_new_card']) && $_POST['is_new_card'] === "true") {
+            try {
+                $this->add_payment_method();
+            }catch(Exception $e) {
+                $this->utils->log('warning', $e->getMessage());
+                
+            }
         }
         return $result;
     }
