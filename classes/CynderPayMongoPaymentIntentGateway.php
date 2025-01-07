@@ -75,15 +75,15 @@ class CynderPayMongoPaymentIntentGateway extends \WC_Payment_Gateway_CC
             'products', 
             'subscriptions',
             'subscription_cancellation',
-            'tokenization'
-            // 'subscription_suspension', 
-            // 'subscription_reactivation',
+            // 'tokenization'
+            'subscription_suspension', 
+            'subscription_reactivation',
             // 'subscription_amount_changes',
             // 'subscription_date_changes',
-            // 'subscription_payment_method_change'
+            'subscription_payment_method_change',
             // 'subscription_payment_method_change_customer',
             // 'subscription_payment_method_change_admin',
-            // 'multiple_subscriptions',
+            'multiple_subscriptions',
         );
 
         $this->initFormFields();
