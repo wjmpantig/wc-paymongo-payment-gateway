@@ -29,7 +29,7 @@ if (!defined('ABSPATH')) {
  * @license  n/a (http://127.0.0.0)
  * @link     n/a
  */
-class CynderPayMongoPaymentIntentGateway extends \WC_Payment_Gateway_CC
+class CynderPayMongoPaymentIntentGateway extends \WC_Payment_Gateway
 {
     /**
      * Singleton instance
