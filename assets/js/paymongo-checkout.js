@@ -25,8 +25,6 @@ jQuery(document).ready(function ($) {
     }
 
     Checkout.prototype.showErrors = function (e, errorString) {
-        console.log('Motha', errorString);
-
         // Remove notices from all sources
         $(
             ".woocommerce-error, .woocommerce-message, .paymongo-error"
