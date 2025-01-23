@@ -74,10 +74,10 @@ class CynderPayMongoPaymentIntentGateway extends \WC_Payment_Gateway
         $this->supports = array(
             'products', 
             'subscriptions',
-            'subscription_cancellation',
+            // 'subscription_cancellation',
             // 'tokenization'
-            'subscription_suspension', 
-            'subscription_reactivation',
+            // 'subscription_suspension', 
+            // 'subscription_reactivation',
             // 'subscription_amount_changes',
             // 'subscription_date_changes',
             'subscription_payment_method_change',
